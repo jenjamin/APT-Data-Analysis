@@ -74,9 +74,9 @@ EdgeClusterRangeFileWriter <- function(RangeFilePath) {
   
 }
 
-library(tidyverse)
-library("geometry", lib.loc = "~/R/win-library/3.4")
-library(spatstat)
+require(tidyverse)
+require("geometry", lib.loc = "~/R/win-library/3.4")
+require(spatstat)
 
 #### Get file paths of pos, range file and cluster information ####
 posFilePath <- FilePaths[1]
@@ -162,7 +162,7 @@ print(paste0(
 ))
 
 #### Using alpha-shape 3d ####
-library("alphashape3d", lib.loc = "~/R/win-library/3.4")
+require("alphashape3d", lib.loc = "~/R/win-library/3.4")
 AlphaHullShape <-
   ashape3d(as.matrix(FilterPosFile[, 1:3]), alpha =  c(AlphaValue, 2*AlphaValue))
 #plot(AlphaHullShape, indexAlpha = 1)
