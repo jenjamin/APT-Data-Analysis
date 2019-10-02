@@ -221,3 +221,12 @@ GrainBoundarySumm <- function() {
 print(paste0("Width of interface is: ",round(GBWidth,2)," nm (2dp)"))
 }
 GrainBoundarySumm()
+
+InterfaceStart <- min((ElementCountDF %>%
+                      filter_(paste(ElementName, ">=", CutOffAValue)))$"Distance")
+
+InterfaceEnd <- max((ElementCountDF %>% 
+       filter_(paste(ElementName, ">=", CutOffBValue)))$"Distance")
+
+# rm(list = c(objects())[!(c(objects()) %in% c("InterfaceEnd","InterfaceStart","GBSummary"))])
+
