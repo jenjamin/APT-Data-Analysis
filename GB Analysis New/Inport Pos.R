@@ -79,12 +79,39 @@ RangesDF2 <- cbind(
 
 rm(Ranges, RangesDF)
 
+#### Assigning ion based on m ####
+IonList <- lapply(PosFile$m, function(MassToCharge) RangesDF2$Ion[between(MassToCharge,
+                                                                          RangesDF2$Start,
+                                                                          RangesDF2$End)])
+IonList <- lapply(IonList, function(x) if(identical(x, character(0))) NA_character_ else x)
+PosFile$Ion <- unlist(IonList)
+rm(IonList)
+PosFile$Ion[is.na(PosFile$Ion)] = "Unranged"
+
 #### Plot Mass Spec ####
+
+myTheme <- function(relSize = 16) {
+  return(theme_classic(relSize))
+}
+
+# Create colour list from range file
+myColors <- c(paste0("#",
+                     (RangesDF2 %>%
+                        select(Color, Ion) %>%
+                        distinct())$Color),
+              "#000000")
+names(myColors) <- c((RangesDF2 %>%
+                        select(Color, Ion) %>%
+                        distinct())$Ion,
+                     "Unranged")
+
 ggplot(PosFile %>%
-         filter(m < 30 & m > 25)) +
-  geom_histogram(aes(m), binwidth = 0.01) + 
-  scale_y_continuous(trans = log10_trans()) 
-
-PosFile %>%
-  mutate(Ion = if_else(, ,))
-
+         filter(m < 33 & m > 0)) +
+  geom_histogram(aes(m, fill = Ion),
+                 binwidth = 0.01) + 
+  scale_y_continuous(trans = log10_trans()) +
+  scale_fill_manual(values = myColors) +
+  myTheme() +
+  labs(x = "Mass-To-Charge-State Ratio (m/z)",
+       y = "Count") +
+  theme(legend.position = "bottom")
