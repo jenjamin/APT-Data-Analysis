@@ -1,0 +1,153 @@
+# Create function to generate pos file
+# Input atomic denisty
+# ROI dimensions
+library(tidyverse)
+
+POSGenerator <- function(AtomicDensity, XRange, YRange, ZRange,
+                         CompositionTable){
+  
+  TotalNumberAtoms = AtomicDensity * 
+    (max(XRange)-min(XRange)) * 
+    (max(YRange)-min(YRange)) *
+    (max(ZRange)-min(ZRange))
+  x <- sample(seq(min(XRange), max(XRange), 0.00001), TotalNumberAtoms, replace = FALSE)
+  y <- sample(seq(min(YRange), max(YRange), 0.00001), TotalNumberAtoms, replace = FALSE)
+  z <- sample(seq(min(ZRange), max(ZRange), 0.00001), TotalNumberAtoms, replace = FALSE)
+  
+  SimulatedPos <- data.frame(x,y,z) %>%
+    mutate(m = sample(CompositionTable$Mass, n(), prob = CompositionTable$Abundance, replace = TRUE))
+  
+}
+
+#### Generate matrix pos ####
+
+MatrixA <- POSGenerator(AtomicDensity = 40, 
+             XRange = c(-10, 10),
+             YRange = c(-10, 10), 
+             ZRange = c(-10, -1),
+             CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                           "Abundance"= c(98.9,1.0,0.1),
+                                           "Mass" = c(28, 29, 15.5)))
+
+MatrixB <- POSGenerator(AtomicDensity = 40, 
+                        XRange = c(-10, 10),
+                        YRange = c(-10, 10), 
+                        ZRange = c(1, 10),
+                        CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                                      "Abundance"= c(98.9,1.0,0.1),
+                                                      "Mass" = c(28, 29, 15.5)))
+#### GB pos generation ####
+GB <- POSGenerator(AtomicDensity = 40, 
+                   XRange = c(-10, 10),
+                   YRange = c(-10, 10), 
+                   ZRange = c(-1, 1),
+                   CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                                 "Abundance"= c(90.0,6.0,4.0),
+                                                 "Mass" = c(28, 29, 15.5)))
+GBtest <- data.frame()
+for (Distance in seq(-1,0.9,0.1)) {
+  GBSection <- POSGenerator(AtomicDensity = 40, 
+                     XRange = c(-10, 10),
+                     YRange = c(-10, 10), 
+                     ZRange = c(Distance, Distance + 0.1),
+                     CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                                   "Abundance"= c(90.0-abs(Distance),
+                                                                  6.0+0.5*abs(Distance),
+                                                                  4.0+0.5*abs(Distance)),
+                                                   "Mass" = c(28, 29, 15.5)))
+  GBtest <- rbind(GBtest, GBSection)
+}
+
+#### Create overall pos ####
+SimulatedPos <- rbind(MatrixA, MatrixB, GBtest)
+rm(MatrixA, MatrixB, GB)
+
+#### Input RangeFile and Tidy ####
+RangeFile <- read.delim("Range For Simulation.rrng", colClasses = "character", header = FALSE)
+RowsToSkip <- as.numeric(gsub("Number=", "", RangeFile[2,])) + 5
+Ranges <- RangeFile %>% slice(RowsToSkip:n())
+rm(RowsToSkip, RangeFile)
+
+RangesDF <- data.frame()
+
+i = 0
+for(i in unique(str_count(Ranges$V1, ":") - 2)){
+  
+  Elements <- c()
+  for(j in seq(1,i,1)){
+    Elements <- append(Elements,paste("Element",j))
+  }
+  
+  ColumnNames <- c("Start", "End", "Volume",
+                   Elements, "Color")
+  
+  Ranges %>%
+    mutate(NumberIons = str_count(V1, ":") - 2) %>%
+    filter(NumberIons == i) %>%
+    separate(V1,
+             ColumnNames,
+             sep = " ")
+  
+  RangesDF <- bind_rows(RangesDF, 
+                        Ranges %>%
+                          mutate(NumberIons = str_count(V1, ":") - 2) %>%
+                          filter(NumberIons == i) %>%
+                          separate(V1,
+                                   ColumnNames,
+                                   sep = " ")
+  )
+  
+}
+
+rm(ColumnNames, Elements,i, j) 
+
+#### Creat R-friendly range file ####
+
+RangesDF2 <- cbind(
+  RangesDF %>%
+    mutate(Start = as.numeric(str_extract(Start,"[^=]+$")),
+           End = as.numeric(str_extract(End, "[^=]+$")),
+           Volume = gsub("Vol:", "", Volume),
+           Color = gsub("Color:", "", Color)) %>%
+    select(Start, End, Volume, Color),
+  RangesDF %>%
+    select(contains("Element")) %>%
+    unite("Ion") %>%
+    mutate(Ion = paste(gsub("1|Name|:|NA|_| ","",Ion)))
+)
+
+rm(Ranges, RangesDF)
+
+#### Range pos####
+Ion <- data.frame(matrix(NA,
+                          nrow = nrow(SimulatedPos)))
+for(i in seq(1,nrow(RangesDF2),1)){
+  Name <- RangesDF2$Ion[i]
+  Ion <<- cbind(
+    Ion,
+    SimulatedPos %>%
+    mutate(Name = ifelse(SimulatedPos$m > RangesDF2$Start[i] &
+                        SimulatedPos$m < RangesDF2$End[i],
+                        RangesDF2$Ion[i], NA)) %>%
+    select(Name))
+}
+Ion$Noise <- "Noise"
+SimulatedPos$Ion <- apply(Ion, 1, function(x) na.omit(x)[1])
+rm(i, Ion)
+
+
+#### Plot one D conc plot ####
+ROILength = max(SimulatedPos$z) - min(SimulatedPos$z)
+
+OneDConcPlot <- SimulatedPos %>% 
+  group_by(Distance = cut(z, breaks= seq(min(SimulatedPos$z), max(SimulatedPos$z), by = 0.1)),
+           Ion) %>%
+  summarise(Ioncount = n()) %>%
+  ungroup() %>%
+  spread(Ion, Ioncount) %>%
+  mutate(Distance = as.numeric(as.character((ceiling(ROILength))*(row_number()/n()))))
+
+OneDConcPlot[is.na(OneDConcPlot)] <- 0
+
+ggplot(OneDConcPlot) +
+  geom_point(aes(Distance, P))

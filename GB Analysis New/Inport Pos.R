@@ -70,9 +70,9 @@ RangesDF2 <- cbind(
            End = as.numeric(str_extract(End, "[^=]+$")),
            Volume = gsub("Vol:", "", Volume),
            Color = gsub("Color:", "", Color)) %>%
-  select(-NumberIons, -`Element 1`, -`Element 2`),
+  select(Start, End, Volume, Color),
   RangesDF %>%
-    select_if((grepl("Element",names(.)))) %>%
+    select(contains("Element")) %>%
     unite("Ion") %>%
     mutate(Ion = paste(gsub("1|Name|:|NA|_| ","",Ion)))
 )
@@ -87,6 +87,22 @@ IonList <- lapply(IonList, function(x) if(identical(x, character(0))) NA_charact
 PosFile$Ion <- unlist(IonList)
 rm(IonList)
 PosFile$Ion[is.na(PosFile$Ion)] = "Unranged"
+
+Ion <- data.frame(matrix(NA,
+                         nrow = nrow(PosFile)))
+for(i in seq(1,nrow(RangesDF2),1)){
+  Name <- RangesDF2$Ion[i]
+  Ion <<- cbind(
+    Ion,
+    PosFile %>%
+      mutate(Name = ifelse(PosFile$m > RangesDF2$Start[i] &
+                             PosFile$m < RangesDF2$End[i],
+                           RangesDF2$Ion[i], NA)) %>%
+      select(Name))
+}
+Ion$Noise <- "Noise"
+PosFile$Ion <- apply(Ion, 1, function(x) na.omit(x)[1])
+rm(i, Ion)
 
 #### Plot Mass Spec ####
 

@@ -1,0 +1,10 @@
+[Ions]
+Number=3
+Ion1=Fe
+Ion2=Ni
+Ion3=P
+[Ranges]
+Number=3
+Range1=27.9530 28.0240 Vol:0.02003 Fe:1 Color:FF00FF
+Range2=28.9590 29.0170 Vol:0.02003 Ni:1 Color:00CC00
+Range3=15.4650 15.5610 Vol:0.02003 P:1 Color:FF00FF
