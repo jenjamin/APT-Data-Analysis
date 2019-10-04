@@ -24,7 +24,7 @@ POSGenerator <- function(AtomicDensity, XRange, YRange, ZRange,
 MatrixA <- POSGenerator(AtomicDensity = 40, 
              XRange = c(-10, 10),
              YRange = c(-10, 10), 
-             ZRange = c(-10, -1),
+             ZRange = c(-15, -1),
              CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
                                            "Abundance"= c(98.9,1.0,0.1),
                                            "Mass" = c(28, 29, 15.5)))
@@ -32,7 +32,7 @@ MatrixA <- POSGenerator(AtomicDensity = 40,
 MatrixB <- POSGenerator(AtomicDensity = 40, 
                         XRange = c(-10, 10),
                         YRange = c(-10, 10), 
-                        ZRange = c(1, 10),
+                        ZRange = c(1, 15),
                         CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
                                                       "Abundance"= c(98.9,1.0,0.1),
                                                       "Mass" = c(28, 29, 15.5)))
@@ -44,22 +44,14 @@ GB <- POSGenerator(AtomicDensity = 40,
                    CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
                                                  "Abundance"= c(90.0,6.0,4.0),
                                                  "Mass" = c(28, 29, 15.5)))
-GBtest <- data.frame()
-for (Distance in seq(-1,0.9,0.1)) {
-  GBSection <- POSGenerator(AtomicDensity = 40, 
-                     XRange = c(-10, 10),
-                     YRange = c(-10, 10), 
-                     ZRange = c(Distance, Distance + 0.1),
-                     CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
-                                                   "Abundance"= c(90.0-abs(Distance),
-                                                                  6.0+0.5*abs(Distance),
-                                                                  4.0+0.5*abs(Distance)),
-                                                   "Mass" = c(28, 29, 15.5)))
-  GBtest <- rbind(GBtest, GBSection)
-}
 
 #### Create overall pos ####
-SimulatedPos <- rbind(MatrixA, MatrixB, GBtest)
+SimulatedPos <- rbind(MatrixA, MatrixB, GB)
+#Add gaussian noise to z position
+SimulatedPos <- SimulatedPos %>%
+  mutate(z = z + rnorm(n(),0,1)) %>%
+  filter(-10 < z & z < 10)
+
 rm(MatrixA, MatrixB, GB)
 
 #### Input RangeFile and Tidy ####
