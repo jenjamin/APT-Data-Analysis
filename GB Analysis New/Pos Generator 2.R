@@ -49,7 +49,7 @@ GB <- POSGenerator(AtomicDensity = 40,
 SimulatedPos <- rbind(MatrixA, MatrixB, GB)
 #Add gaussian noise to z position
 SimulatedPos <- SimulatedPos %>%
-  mutate(z = z + rnorm(n(),0,1)) %>%
+  mutate(z = z + rnorm(n(),0,0.5)) %>%
   filter(-10 < z & z < 10)
 
 rm(MatrixA, MatrixB, GB)

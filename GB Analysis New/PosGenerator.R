@@ -1,60 +1,57 @@
-# Creating mock pos file 400000 ions 
-# 20 x 20 x 25 nm
+# Script for creating simulated pos file of data
+library(tidyverse)
 
-zLength = 25
-HalfzLength = zLength/2
+POSGenerator <- function(AtomicDensity, XRange, YRange, ZRange,
+                         CompositionTable){
+  
+  TotalNumberAtoms = AtomicDensity * 
+    (max(XRange)-min(XRange)) * 
+    (max(YRange)-min(YRange)) *
+    (max(ZRange)-min(ZRange))
+  x <- sample(seq(min(XRange), max(XRange), 0.00001), TotalNumberAtoms, replace = FALSE)
+  y <- sample(seq(min(YRange), max(YRange), 0.00001), TotalNumberAtoms, replace = FALSE)
+  z <- sample(seq(min(ZRange), max(ZRange), 0.00001), TotalNumberAtoms, replace = FALSE)
+  
+  SimulatedPos <- data.frame(x,y,z) %>%
+    mutate(m = sample(CompositionTable$Mass, n(), prob = CompositionTable$Abundance, replace = TRUE))
+  
+}
 
-x <- sample(seq(0, 20, 0.00001), 400000, replace = FALSE)
-y <- sample(seq(0, 20, 0.00001), 400000, replace = FALSE)
-z <- sample(seq(-HalfzLength, HalfzLength, 0.00001), 400000, replace = FALSE)
+#### Generate matrix pos ####
 
-FeMatrix = 98.99
-FeGB = 86
-FeDiff = FeMatrix - FeGB
+MatrixA <- POSGenerator(AtomicDensity = 40, 
+                        XRange = c(-10, 10),
+                        YRange = c(-10, 10), 
+                        ZRange = c(-15, -1),
+                        CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                                      "Abundance"= c(98.9,1.0,0.1),
+                                                      "Mass" = c(28, 29, 15.5)))
 
-NiMatrix = 1
-NiGB = 8
-NiDiff = NiMatrix - NiGB
+MatrixB <- POSGenerator(AtomicDensity = 40, 
+                        XRange = c(-10, 10),
+                        YRange = c(-10, 10), 
+                        ZRange = c(1, 15),
+                        CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                                      "Abundance"= c(98.9,1.0,0.1),
+                                                      "Mass" = c(28, 29, 15.5)))
+#### GB pos generation ####
+GB <- POSGenerator(AtomicDensity = 40, 
+                   XRange = c(-10, 10),
+                   YRange = c(-10, 10), 
+                   ZRange = c(-1, 1),
+                   CompositionTable = data.frame("Element" = c("Fe", "Ni", "P"),
+                                                 "Abundance"= c(90.0,6.0,4.0),
+                                                 "Mass" = c(28, 29, 15.5)))
 
-PMatrix = 0.01
-PGB = 6
-PDiff = PMatrix - PGB
+#### Create overall pos ####
+SimulatedPos <- rbind(MatrixA, MatrixB, GB)
+#Add gaussian noise to z position
+SimulatedPos <- SimulatedPos %>%
+  mutate(z = z + rnorm(n(),0,0.5)) %>%
+  filter(-10 < z & z < 10)
 
-SimulatedPos <- data.frame(x,y,z) %>%
-  mutate(m = if_else(
-    z < -1 | z > 1,
-    sample(c(28,29,15.5), n(), prob = c(FeMatrix,NiMatrix,PMatrix), replace = TRUE),
-    sample(c(28,29,15.5), n(), prob = c(rnorm(1,FeMatrix-(FeDiff-FeDiff*abs((z)/HalfzLength)),1),
-                                      rnorm(1,NiMatrix-(NiDiff-NiDiff*abs((z)/HalfzLength)),1),
-                                      rnorm(1,PMatrix-(PDiff-PDiff*abs((z)/HalfzLength)),1)),
-           replace = TRUE))
-  )
+rm(MatrixA, MatrixB, GB)
 
-IonList <- lapply(SimulatedPos$m, function(MassToCharge) RangesDF2$Ion[between(MassToCharge,
-                                                                               RangesDF2$Start,
-                                                                               RangesDF2$End)])
-IonList <- lapply(IonList, function(x) if(identical(x, character(0))) NA_character_ else x)
-SimulatedPos$Ion <- unlist(IonList)
-rm(IonList)
+source("writeposR.R")
 
-ggplot(SimulatedPos %>%
-         filter(m == 15.5),
-       aes(x = z)) +
-  stat_bin(aes(y=cumsum(..count..)),geom="step") +
-  xlim(-12.5,12.5)
-
-a <- SimulatedPos %>% 
-  group_by(Distance = cut(z, breaks= seq(-HalfzLength, HalfzLength, by = 0.1)),
-           Ion) %>%
-  summarise(Ioncount = n()) %>%
-  ungroup() %>%
-  spread(Ion, Ioncount) %>%
-  mutate(Distance = as.numeric(as.character(zLength*(row_number()/n()))),
-         P = replace_na(P, 0))
-
-ggplot(a) +
-  geom_point(aes(Distance, Fe))
-
-c(FeMatrix-(FeDiff-FeDiff*abs((z)/HalfzLength)) +
-    NiMatrix-(NiDiff-NiDiff*abs((z)/HalfzLength)) +
-    PMatrix-(PDiff-PDiff*abs((z)/HalfzLength)))
+writeposR(SimulatedPos, "Simulated GB.pos")
