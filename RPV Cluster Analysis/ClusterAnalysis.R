@@ -6,11 +6,11 @@
 setwd(dirname(parent.frame(2)$ofile))
 
 require(tidyverse)
-source("CSVConverter.R")
-source("Edge Cluster Detection.R")
-source("ClusterBarPlots.R")
-source("TernaryPlots.R")
-source("ClusterCalculator.R")
+source("Test Files//CSVConverter.R")
+source("Test Files//Edge Cluster Detection.R")
+source("Test Files//ClusterBarPlots.R")
+source("Test Files//TernaryPlots.R")
+source("Test Files//ClusterCalculator.R")
 
 # Type the paths to your cluster analysis csv, pos file, and indexed range file
 # Ensure that "/" in file path are re-written as "//" or "/"
