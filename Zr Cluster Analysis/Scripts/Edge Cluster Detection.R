@@ -14,9 +14,9 @@ require("alphashape3d")
 require("spatstat")
 
 #These functions allow one to import a pos file (sampled or not) into R with x, y, z, and mass-to-charge-ratio information
-source("read.pos.sampled.R")
-source("read.pos.R")
-source("writeposR.R")
+source("Test Files\\read.pos.sampled.R")
+source("Test Files\\read.pos.R")
+source("Test Files/writeposR.R")
 #### Function for identifying edge clusters ####
 findEdgeClustersConvex <- function (posFileName, 
                                     clusterStatsFile,
