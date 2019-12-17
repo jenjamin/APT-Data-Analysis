@@ -7,16 +7,15 @@
 #   Returns a list of which cluster IDs are deemed to be on the edge of the dataile, Cluster Analysis CSV
 # Written by Ben Jenkins and Andy London
 
-setwd(dirname(parent.frame(2)$ofile))
 require("tidyverse")
 require("geometry")
 require("alphashape3d")
 require("spatstat")
 
 #These functions allow one to import a pos file (sampled or not) into R with x, y, z, and mass-to-charge-ratio information
-source("Test Files\\read.pos.sampled.R")
-source("Test Files\\read.pos.R")
-source("Test Files/writeposR.R")
+source("Scripts/read.pos.sampled.R")
+source("Scripts/read.pos.R")
+source("Scripts/writeposR.R")
 #### Function for identifying edge clusters ####
 findEdgeClustersConvex <- function (posFileName, 
                                     clusterStatsFile,
