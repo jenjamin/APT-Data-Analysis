@@ -4,6 +4,12 @@
 # It then converts the cluster information into a new dataframe called "ClusterAtomCount"
 # Written by Ben Jenkins Dec 2018
 
+if("BiocManager" %in% rownames(installed.packages()) == FALSE){
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+  BiocManager::install("Rdisop")
+}
+
 CompositionCalculator <- function(DataframeName){
   ClusterInformation <- DataframeName  %>%
     filter(!grepl("Matrix",X)) %>%

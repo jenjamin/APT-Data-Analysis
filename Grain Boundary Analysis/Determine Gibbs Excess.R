@@ -1,6 +1,11 @@
 require(tidyverse)
 require(PeriodicTable)
 require(InterpretMSSpectrum)
+if("BiocManager" %in% rownames(installed.packages()) == FALSE){
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+  BiocManager::install("Rdisop")
+}
 
 ImportedData <- read.csv(paste0(CSVFilePath), 
                          header =TRUE, sep =",", quote="\"", 

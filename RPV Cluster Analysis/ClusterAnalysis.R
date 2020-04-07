@@ -6,8 +6,16 @@
 setwd(dirname(parent.frame(2)$ofile))
 
 require(tidyverse)
+if("BiocManager" %in% rownames(installed.packages()) == FALSE){
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+  BiocManager::install("Rdisop")
+}
 source("Test Files//CSVConverter.R")
 source("Test Files//Edge Cluster Detection.R")
+
+setwd(dirname(parent.frame(2)$ofile))
+
 source("Test Files//ClusterBarPlots.R")
 source("Test Files//TernaryPlots.R")
 source("Test Files//ClusterCalculator.R")

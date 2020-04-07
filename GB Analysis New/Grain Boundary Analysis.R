@@ -3,6 +3,11 @@
 # Will return a .pos file of just the GB region
 
 require(tidyverse)
+if("BiocManager" %in% rownames(installed.packages()) == FALSE){
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+  BiocManager::install("Rdisop")
+}
 
 #### User defined  variables - change these for each analysis ####
 # Path to .pos file
