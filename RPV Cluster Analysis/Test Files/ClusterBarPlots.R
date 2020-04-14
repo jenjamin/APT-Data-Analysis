@@ -43,9 +43,6 @@ if(FeLinePlot == "Y"){
 
 ClusterBarChart <- ClusterBarChart +
   theme_bw() + #Graph Theme
-  scale_y_continuous(limits = c(0, 100.00001),
-                     breaks=seq(0,100,10),
-                     labels = fmt_dcimals(0)) + #y-axis limits and label distribution
   scale_x_discrete(labels = function(x) round(as.numeric(x), digits=0),
                    breaks = unique((ClusterInfoForBarChart %>% 
                                       filter(Element == "Cu") %>%

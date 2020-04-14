@@ -1,10 +1,8 @@
 # This script will plot a ternary plot showing ratio of Ni:Mn:Si for each cluster
 # Written by Ben Jenkins Dec 2018
 
-require(ggtern)
-
 TernaryPlotFunction <- function(EdgeRemoval){
-  
+  require(ggtern)
   if(EdgeRemoval == "N"){
   
   TernaryPlot <<- ggtern(ClusterInfoForBarChart %>%
@@ -38,4 +36,10 @@ TernaryPlotFunction <- function(EdgeRemoval){
       scale_shape_manual(values=seq(0,15))
     print(TernaryPlot)
   }
+  detach("package:ggtern", unload = TRUE)
+  detach("package:tidyverse", unload = TRUE)
+  detach("package:ggplot2", unload = TRUE)
+  library(tidyverse)
 }
+
+

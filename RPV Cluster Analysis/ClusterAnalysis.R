@@ -17,7 +17,6 @@ source("Test Files//Edge Cluster Detection.R")
 setwd(dirname(parent.frame(2)$ofile))
 
 source("Test Files//ClusterBarPlots.R")
-source("Test Files//TernaryPlots.R")
 source("Test Files//ClusterCalculator.R")
 
 # Type the paths to your cluster analysis csv, pos file, and indexed range file
@@ -62,6 +61,7 @@ ClusterBarChartPlot(FeLinePlot = "Y",
 
 # Run this function to plot a ternary plot showing ratio of Ni:Mn:Si for each cluster
 # Option for plotting composition of edge clusters: "N" will plot edge clusters, "Y" will remove them from analyses
+source("Test Files//TernaryPlots.R")
 TernaryPlotFunction(EdgeRemoval = "Y")
 
 # Perform calculations for cluster size (edge clusters not included), volume fraction, number density (edge clusters = 0.5)
