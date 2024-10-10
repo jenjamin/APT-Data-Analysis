@@ -1,7 +1,7 @@
 # Script for analysing a grain boundary containing pos file
 # Will determine start and end of interface, GB composition and width
 # Will return a .pos file of just the GB region
-
+require(tools)
 require(tidyverse)
 if("BiocManager" %in% rownames(installed.packages()) == FALSE){
   if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -29,8 +29,15 @@ NewDirectory <- file.path(dirname(getwd()), basename(getwd()), paste0("Output Fi
 dir.create(NewDirectory)
 
 #### Read intial .pos file ####
-source("Scripts For Grain Boundary Analysis/readposR.R")
-PosFileInput <- readposR(PosLocation)
+if(file_ext(PosLocation) =="pos"){
+  source("Scripts For Grain Boundary Analysis/readposR.R")
+  PosFileInput <- readposR(PosLocation)
+  }
+if(file_ext(PosLocation) =="apt"){
+  source("Scripts For Grain Boundary Analysis/read.apt.R.R")
+  PosFileInput <- readaptR(PosLocation)
+  rm(APTFileHeader2,APTBranchesDict,APTSectionHeaderAuto,PARAPROBE_Transcoder2)
+}
 
 ##### Combine .pos file with .rrng file to get chemical information ####
 source("Scripts For Grain Boundary Analysis/Combine Pos and Range File.R")
