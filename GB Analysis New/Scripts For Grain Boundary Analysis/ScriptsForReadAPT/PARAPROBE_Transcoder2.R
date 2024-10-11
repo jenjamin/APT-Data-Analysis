@@ -296,7 +296,7 @@ setRefClass("Data",
                           cat('Reading Position box bounds failed!\n')
                           break
                         }
-                        Position <- matrix(readBin(fid, what = "numeric", n = ni * nj, size = 4, endian = "little"), nrow = nj, ncol = ni, byrow = TRUE)
+                        Position <- matrix(readBin(fid, what = "numeric", n = ni * nj, size = 4, endian = "little"), nrow = nj, ncol = ni)
                         if (!all(dim(Position) == c(nj, ni))) {
                           cat('Reading Position failed!\n')
                           break
